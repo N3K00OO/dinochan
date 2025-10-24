@@ -180,9 +180,13 @@ const resolveToastDuration = (toast, fallbackDuration) => {
 };
 
 const scheduleToastRemoval = (toast, duration) => {
-  const timeout = Number(duration);
-  if (!toast || Number.isNaN(timeout) || timeout <= 0) {
+  if (!toast) {
     return;
+  }
+  const parsedDuration = Number(duration);
+  const timeout = Number.isFinite(parsedDuration) && parsedDuration > 0 ? parsedDuration : DEFAULT_TOAST_DURATION;
+  if (toast.dataset.toastTimer) {
+    window.clearTimeout(Number(toast.dataset.toastTimer));
   }
   const timerId = window.setTimeout(() => {
     hideToast(toast);

@@ -45,6 +45,25 @@ class BookingFlowTests(TestCase):
             price="50000.00",
         )
 
+    def _create_confirmed_booking(self) -> Booking:
+        self.client.force_login(self.user)
+        start = timezone.now() + timedelta(days=4)
+        end = start + timedelta(hours=1)
+        self.client.post(
+            reverse("venue-detail", kwargs={"slug": self.venue.slug}),
+            {
+                "start_datetime": start.strftime("%Y-%m-%dT%H:%M"),
+                "end_datetime": end.strftime("%Y-%m-%dT%H:%M"),
+            },
+        )
+        booking = Booking.objects.get(user=self.user, venue=self.venue)
+        booking.approve(self.admin)
+        booking.refresh_from_db()
+        self.client.post(reverse("payment", args=[booking.pk]), {"method": "gopay"})
+        booking.refresh_from_db()
+        self.assertEqual(booking.status, Booking.STATUS_CONFIRMED)
+        return booking
+
     def test_user_can_submit_booking_request(self) -> None:
         self.client.force_login(self.user)
         start = timezone.now() + timedelta(days=1)
@@ -134,24 +153,7 @@ class BookingFlowTests(TestCase):
         self.assertContains(response, reverse("payment", args=[booking.pk]))
 
     def test_user_can_cancel_confirmed_booking(self) -> None:
-        self.client.force_login(self.user)
-        start = timezone.now() + timedelta(days=4)
-        end = start + timedelta(hours=1)
-        self.client.post(
-            reverse("venue-detail", kwargs={"slug": self.venue.slug}),
-            {
-                "start_datetime": start.strftime("%Y-%m-%dT%H:%M"),
-                "end_datetime": end.strftime("%Y-%m-%dT%H:%M"),
-            },
-        )
-
-        booking = Booking.objects.get(user=self.user, venue=self.venue)
-        booking.approve(self.admin)
-        booking.refresh_from_db()
-
-        self.client.post(reverse("payment", args=[booking.pk]), {"method": "gopay"})
-        booking.refresh_from_db()
-        self.assertEqual(booking.status, Booking.STATUS_CONFIRMED)
+        booking = self._create_confirmed_booking()
         self.assertEqual(booking.payment.status, "confirmed")
 
         response = self.client.post(reverse("booking-cancel", args=[booking.pk]))
@@ -160,3 +162,45 @@ class BookingFlowTests(TestCase):
         booking.refresh_from_db()
         self.assertEqual(booking.status, Booking.STATUS_CANCELLED)
         self.assertEqual(booking.payment.status, "waiting")
+
+    def test_cancel_booking_returns_json_for_ajax_requests(self) -> None:
+        booking = self._create_confirmed_booking()
+
+        response = self.client.post(
+            reverse("booking-cancel", args=[booking.pk]),
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(
+            response.content,
+            {
+                "success": True,
+                "message": "Booking cancelled successfully.",
+                "booking_id": booking.pk,
+            },
+        )
+
+        booking.refresh_from_db()
+        self.assertEqual(booking.status, Booking.STATUS_CANCELLED)
+        self.assertEqual(booking.payment.status, "waiting")
+
+    def test_cancel_booking_rejects_completed_booking_via_ajax(self) -> None:
+        booking = self._create_confirmed_booking()
+        booking.status = Booking.STATUS_COMPLETED
+        booking.save(update_fields=["status"])
+
+        response = self.client.post(
+            reverse("booking-cancel", args=[booking.pk]),
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertJSONEqual(
+            response.content,
+            {
+                "success": False,
+                "message": "This booking can no longer be cancelled.",
+                "booking_id": booking.pk,
+            },
+        )
