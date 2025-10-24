@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from .forms import BookingAdminForm
 from .models import Booking, Payment
 
 
@@ -11,7 +12,8 @@ class PaymentInline(admin.StackedInline):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ("venue", "user", "start_datetime", "end_datetime")
+    form = BookingAdminForm
+    list_display = ("venue", "user", "start_date", "end_date")
     list_filter = ("venue", "user")
     search_fields = ("venue__name", "user__username")
     inlines = [PaymentInline]
