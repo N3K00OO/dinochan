@@ -72,6 +72,21 @@ const toastLevelClassNames = {
 };
 
 const DEFAULT_TOAST_DURATION = 3000;
+const TOAST_REMOVE_BUFFER = 600;
+
+const clearToastTimers = (toast) => {
+  if (!toast) {
+    return;
+  }
+  const timers = ['toastTimer', 'toastRemoveTimer'];
+  timers.forEach((timerKey) => {
+    const timerId = toast.dataset[timerKey];
+    if (timerId) {
+      window.clearTimeout(Number(timerId));
+      delete toast.dataset[timerKey];
+    }
+  });
+};
 
 const onDocumentReady = (callback) => {
   if (typeof document === 'undefined') {
@@ -142,10 +157,7 @@ const hideToast = (toast) => {
     return;
   }
   toast.dataset.toastHiding = 'true';
-  if (toast.dataset.toastTimer) {
-    window.clearTimeout(Number(toast.dataset.toastTimer));
-    delete toast.dataset.toastTimer;
-  }
+  clearToastTimers(toast);
   toast.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
   toast.addEventListener(
     'transitionend',
@@ -185,13 +197,17 @@ const scheduleToastRemoval = (toast, duration) => {
   }
   const parsedDuration = Number(duration);
   const timeout = Number.isFinite(parsedDuration) && parsedDuration > 0 ? parsedDuration : DEFAULT_TOAST_DURATION;
-  if (toast.dataset.toastTimer) {
-    window.clearTimeout(Number(toast.dataset.toastTimer));
-  }
+  clearToastTimers(toast);
   const timerId = window.setTimeout(() => {
     hideToast(toast);
   }, timeout);
   toast.dataset.toastTimer = String(timerId);
+  const removeTimerId = window.setTimeout(() => {
+    if (toast.isConnected) {
+      toast.remove();
+    }
+  }, timeout + TOAST_REMOVE_BUFFER);
+  toast.dataset.toastRemoveTimer = String(removeTimerId);
 };
 
 const registerToastElement = (toast, { level, duration = DEFAULT_TOAST_DURATION, animateIn = false } = {}) => {
@@ -202,6 +218,15 @@ const registerToastElement = (toast, { level, duration = DEFAULT_TOAST_DURATION,
   toast.dataset.toastLevel = normalisedLevel;
   toast.addEventListener('click', () => {
     hideToast(toast);
+  });
+  toast.addEventListener('mouseenter', () => {
+    clearToastTimers(toast);
+  });
+  toast.addEventListener('mouseleave', () => {
+    if (toast.dataset.toastHiding === 'true') {
+      return;
+    }
+    scheduleToastRemoval(toast, toast.dataset.toastDuration || duration);
   });
   const resolvedDuration = resolveToastDuration(toast, duration);
   toast.dataset.toastDuration = String(resolvedDuration);
