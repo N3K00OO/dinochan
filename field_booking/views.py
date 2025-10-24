@@ -17,9 +17,15 @@ class BookingCancelView(LoginRequiredMixin, View):
 
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         booking = get_object_or_404(Booking.objects.select_related("payment"), pk=pk, user=request.user)
+        is_ajax_request = request.headers.get("x-requested-with", "").lower() == "xmlhttprequest"
+
         if booking.status in {Booking.STATUS_COMPLETED, Booking.STATUS_CANCELLED}:
-            messages.error(request, "This booking can no longer be cancelled.")
+            message = "This booking can no longer be cancelled."
+            if is_ajax_request:
+                return JsonResponse({"success": False, "message": message, "booking_id": booking.pk}, status=400)
+            messages.error(request, message)
             return redirect("booked-places")
+
         booking.cancel()
 
         payment = None
@@ -32,7 +38,11 @@ class BookingCancelView(LoginRequiredMixin, View):
         if payment is not None:
             payment.status = "waiting"
             payment.save(update_fields=["status", "updated_at"])
-        messages.success(request, "Booking cancelled successfully.")
+
+        success_message = "Booking cancelled successfully."
+        if is_ajax_request:
+            return JsonResponse({"success": True, "message": success_message, "booking_id": booking.pk})
+        messages.success(request, success_message)
         return redirect("booked-places")
 
 
