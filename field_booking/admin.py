@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from .forms import BookingAdminForm
 from .models import Booking, Payment
 
 

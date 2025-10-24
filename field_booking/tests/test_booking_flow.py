@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import time, timedelta
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -149,6 +149,31 @@ class BookingFlowTests(TestCase):
         self.assertContains(response, booking.venue.name)
         self.assertContains(response, "Awaiting payment")
         self.assertContains(response, reverse("payment", args=[booking.pk]))
+
+    def test_booking_handles_overnight_venue_hours(self) -> None:
+        self.client.force_login(self.user)
+        self.venue.available_start_time = time(22, 0)
+        self.venue.available_end_time = time(6, 0)
+        self.venue.save(update_fields=["available_start_time", "available_end_time"])
+
+        start_date = timezone.localdate() + timedelta(days=2)
+        response = self.client.post(
+            reverse("venue-detail", kwargs={"slug": self.venue.slug}),
+            {
+                "start_datetime": start_date.strftime("%Y-%m-%d"),
+                "end_datetime": start_date.strftime("%Y-%m-%d"),
+            },
+        )
+
+        self.assertRedirects(response, reverse("booked-places"))
+        booking = Booking.objects.get(user=self.user, venue=self.venue)
+        self.assertTrue(timezone.is_aware(booking.start_datetime))
+        self.assertTrue(timezone.is_aware(booking.end_datetime))
+        self.assertEqual(timezone.localtime(booking.start_datetime).time(), time(22, 0))
+        self.assertEqual(timezone.localtime(booking.end_datetime).time(), time(6, 0))
+        self.assertEqual(booking.start_date, start_date)
+        self.assertEqual(booking.end_date, start_date + timedelta(days=1))
+        self.assertEqual(booking.duration_hours, 8)
 
     def test_user_can_cancel_confirmed_booking(self) -> None:
         booking = self._create_confirmed_booking()
