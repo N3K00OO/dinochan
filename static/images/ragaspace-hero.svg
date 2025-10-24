@@ -1,0 +1,29 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Athletes playing on an indoor paddle court">
+  <defs>
+    <linearGradient id="gradSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#dbe7f1" />
+      <stop offset="100%" stop-color="#d0dbe5" />
+    </linearGradient>
+    <linearGradient id="gradCourt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#85c0ad" />
+      <stop offset="100%" stop-color="#5aa189" />
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#gradSky)" />
+  <rect x="0" y="360" width="1920" height="720" fill="url(#gradCourt)" />
+  <g fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round">
+    <rect x="210" y="420" width="1500" height="540" rx="24" ry="24" />
+    <line x1="960" y1="420" x2="960" y2="960" />
+    <line x1="210" y1="690" x2="1710" y2="690" />
+  </g>
+  <g fill="#f69ab3">
+    <ellipse cx="540" cy="620" rx="70" ry="90" />
+    <rect x="512" y="710" width="56" height="200" rx="20" />
+  </g>
+  <g fill="#f57f9f">
+    <ellipse cx="1380" cy="730" rx="80" ry="105" />
+    <rect x="1344" y="820" width="72" height="220" rx="22" />
+  </g>
+  <circle cx="995" cy="525" r="18" fill="#ffe66d" />
+  <path d="M480 980c0-60 40-110 92-110h776c52 0 92 50 92 110" fill="#0f5240" opacity="0.35" />
+</svg>

@@ -1,0 +1,175 @@
+body {
+  color-scheme: dark;
+  font-family: "Poppins", "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/*
+  Reusable palette variables so every dropdown – including the native
+  browser popover that appears when a user starts typing inside the
+  <select> element – inherits the same dark styling.
+*/
+:root {
+  --custom-select-bg: rgba(255, 255, 255, 0.1);
+  --custom-select-bg-hover: rgba(255, 255, 255, 0.14);
+  --custom-select-bg-focus: rgba(255, 255, 255, 0.18);
+  --custom-select-border: rgba(148, 163, 184, 0.35);
+  --custom-select-border-hover: rgba(226, 232, 240, 0.75);
+  --custom-select-highlight: rgba(37, 99, 235, 0.92);
+  --custom-select-highlight-text: #f8fafc;
+  --custom-select-text: #f8fafc;
+  --custom-select-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 18px 45px rgba(15, 23, 42, 0.45);
+  --custom-select-shadow-focus: 0 0 0 4px rgba(148, 163, 184, 0.25), 0 24px 60px rgba(15, 23, 42, 0.6);
+  --custom-select-surface: linear-gradient(140deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
+  --custom-select-surface-focus: linear-gradient(140deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.1));
+}
+
+/*
+  Apply the dark appearance to every select used across the site so all
+  user-facing dropdowns (admin and public) look consistent. We keep the
+  more specific `.custom-select` rules for fine-grained styling but also
+  provide a base `select` rule for any future dropdowns.
+*/
+select,
+select.custom-select,
+.custom-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: var(--custom-select-bg) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23e2e8f0'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E"),
+    var(--custom-select-surface);
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 1.25rem center, center;
+  background-size: 1rem, 100%;
+  border: 1px solid var(--custom-select-border) !important;
+  border-radius: 0.85rem;
+  box-shadow: var(--custom-select-shadow);
+  color: var(--custom-select-text) !important;
+  cursor: pointer;
+  font-family: "Poppins", "Inter", "Segoe UI", system-ui, -apple-system, sans-serif !important;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding-right: 3rem;
+  position: relative;
+  text-shadow: 0 0 1px rgba(15, 23, 42, 0.2);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-image 0.2s ease,
+    color 0.2s ease, transform 0.2s ease;
+  color-scheme: dark;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+select option,
+select optgroup {
+  background-color: rgba(30, 41, 59, 0.95) !important;
+  color: var(--custom-select-text) !important;
+}
+
+select[multiple] {
+  background-image: none !important;
+  padding-right: 1.25rem;
+}
+
+select.custom-select:focus,
+.custom-select:focus,
+select.custom-select:focus-visible,
+.custom-select:focus-visible {
+  outline: none;
+  border-color: rgba(226, 232, 240, 0.85);
+  box-shadow: var(--custom-select-shadow-focus);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23f8fafc'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E"),
+    var(--custom-select-surface-focus);
+  transform: translateY(-1px);
+}
+
+select.custom-select:hover,
+.custom-select:hover {
+  border-color: var(--custom-select-border-hover);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23f8fafc'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E"),
+    var(--custom-select-surface);
+}
+
+select.custom-select option,
+select.custom-select optgroup,
+.custom-select option,
+.custom-select optgroup {
+  background-color: rgba(30, 41, 59, 0.95) !important;
+  color: var(--custom-select-text) !important;
+  font-family: "Poppins", "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-weight: 500;
+}
+
+select.custom-select optgroup {
+  color: rgba(226, 232, 240, 0.85) !important;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+select option:hover,
+select option:checked,
+select option:focus,
+select optgroup:focus,
+select.custom-select option:hover,
+select.custom-select option:checked,
+select.custom-select option:focus,
+select.custom-select optgroup:focus,
+.custom-select option:hover,
+.custom-select option:checked,
+.custom-select option:focus,
+.custom-select optgroup:focus {
+  background-color: var(--custom-select-highlight) !important;
+  color: var(--custom-select-highlight-text) !important;
+}
+
+/* Keep placeholder options readable when no value is selected. */
+select option[disabled],
+select option[value=""],
+select.custom-select option[disabled],
+select.custom-select option[value=""],
+.custom-select option[disabled],
+.custom-select option[value=""] {
+  color: rgba(226, 232, 240, 0.7) !important;
+}
+
+select.custom-select::-ms-expand,
+.custom-select::-ms-expand {
+  display: none;
+}
+
+select.custom-select:-moz-focusring,
+.custom-select:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 #f8fafc;
+}
+
+select.custom-select::-webkit-scrollbar,
+.custom-select::-webkit-scrollbar {
+  width: 10px;
+}
+
+select.custom-select::-webkit-scrollbar-track,
+.custom-select::-webkit-scrollbar-track {
+  background: rgba(55, 65, 81, 0.9);
+}
+
+select.custom-select::-webkit-scrollbar-thumb,
+.custom-select::-webkit-scrollbar-thumb {
+  background-color: rgba(226, 232, 240, 0.35);
+  border-radius: 9999px;
+  border: 2px solid rgba(55, 65, 81, 0.9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  select.custom-select,
+  .custom-select {
+    transition: none;
+  }
+}
+
+.wishlist-button--active svg,
+.wishlist-button--active svg path {
+  fill: #ef4444;
+  stroke: #ef4444;
+}

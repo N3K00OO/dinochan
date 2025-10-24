@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Admin Workspace • RagaSpace{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <header class="rounded-[2.5rem] border border-white/10 bg-white/5 p-8 shadow-xl shadow-slate-950/40 backdrop-blur-2xl">
+    <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <div>
+        <p class="text-sm uppercase tracking-[0.4em] text-white/60">Administration</p>
+        <h1 class="mt-2 text-3xl font-semibold text-white md:text-4xl">Workspace Overview</h1>
+        <p class="mt-2 max-w-2xl text-white/70">Manage venues, approve booking requests, invite fellow administrators, and keep the catalogue healthy through this dedicated control panel.</p>
+      </div>
+      <div class="flex flex-col gap-3 md:flex-row">
+        <a href="{% url 'admin-bookings' %}" class="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20">Review booking requests</a>
+        <a href="{% url 'admin-venues' %}" class="inline-flex items-center justify-center rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/40 transition hover:bg-primary/80">Go to venue manager</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid gap-6 md:grid-cols-4">
+    <div class="rounded-3xl border border-white/10 bg-white/5 p-6 text-white backdrop-blur-xl">
+      <p class="text-sm uppercase tracking-wider text-white/60">Total venues</p>
+      <p class="mt-3 text-4xl font-semibold">{{ stats.venues }}</p>
+    </div>
+    <div class="rounded-3xl border border-white/10 bg-white/5 p-6 text-white backdrop-blur-xl">
+      <p class="text-sm uppercase tracking-wider text-white/60">Bookings</p>
+      <p class="mt-3 text-4xl font-semibold">{{ stats.bookings }}</p>
+    </div>
+    <div class="rounded-3xl border border-white/10 bg-white/5 p-6 text-white backdrop-blur-xl">
+      <p class="text-sm uppercase tracking-wider text-white/60">Payments</p>
+      <p class="mt-3 text-4xl font-semibold">{{ stats.payments }}</p>
+    </div>
+    <div class="rounded-3xl border border-amber-300/20 bg-amber-400/10 p-6 text-white backdrop-blur-xl">
+      <p class="text-sm uppercase tracking-wider text-amber-200/80">Pending approvals</p>
+      <p class="mt-3 text-4xl font-semibold text-amber-100">{{ stats.pending_bookings }}</p>
+    </div>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+      <h2 class="text-xl font-semibold text-white">Invite a new administrator</h2>
+      <p class="mt-2 text-sm text-white/70">Create a trusted teammate account with instant access to this workspace.</p>
+      <form method="post" class="mt-4 space-y-4">
+        {% csrf_token %}
+        {% for field in admin_form %}
+        <div>
+          <label class="mb-1 block text-sm font-medium text-white/70" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+          <p class="mt-1 text-sm text-rose-300">{{ field.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="w-full rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-md shadow-cyan-500/30 transition hover:bg-primary/80">Create admin</button>
+      </form>
+    </div>
+    <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+      <h2 class="text-xl font-semibold text-white">Current administrators</h2>
+      <p class="mt-2 text-sm text-white/70">Keep track of who can access the management interface.</p>
+      <ul class="mt-4 space-y-3">
+        {% for admin in admins %}
+        <li class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white/80">
+          <span class="font-semibold text-white">{{ admin.username }}</span>
+          <span class="text-white/60">Joined {{ admin.date_joined|date:'M d, Y' }}</span>
+        </li>
+        {% empty %}
+        <li class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">No admin accounts yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Register • RagaSpace{% endblock %}
+{% block navbar %}{% endblock %}
+{% block navbar_extra %}{% endblock %}
+{% block body_class %}overflow-hidden{% endblock %}
+{% block page_shell_class %}relative mx-auto flex min-h-screen w-full max-w-7xl flex-col items-center justify-center px-4 py-0 sm:px-6 lg:px-8{% endblock %}
+{% block main_class %}flex flex-1 flex-col items-center justify-center gap-6{% endblock %}
+{% block footer %}{% endblock %}
+{% block content %}
+<div class="w-full max-w-xl rounded-3xl border border-white/10 bg-white/5 p-12 shadow-2xl shadow-slate-950/60 backdrop-blur-xl">
+  <div class="mb-4 flex justify-center">
+    <span class="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/80 to-sky-500/60 p-3 shadow-lg shadow-cyan-500/40">
+      <img src="{% static 'images/ragaspace-logo.svg' %}" alt="RagaSpace" class="h-full w-full object-contain" />
+    </span>
+  </div>
+  <h1 class="mb-2 text-center text-[36px] font-bold text-white">Register to Ragaspace</h1>
+  <p class="mb-6 text-center text-[20px] font-normal text-white/80">Create your account</p>
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="space-y-2">
+      <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-white/80">Username:</label>
+      {{ form.username }}
+      {{ form.username.errors }}
+    </div>
+    <div class="space-y-2">
+      <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-white/80">Password:</label>
+      {{ form.password1 }}
+      {{ form.password1.errors }}
+    </div>
+    <div class="space-y-2">
+      <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-white/80">Confirm password:</label>
+      {{ form.password2 }}
+      {{ form.password2.errors }}
+    </div>
+    <button type="submit" class="w-full rounded-2xl bg-[#1B89AE] px-4 py-3 text-lg font-semibold text-white transition-colors duration-150 hover:bg-[#15647F]">Register</button>
+  </form>
+  <p class="mt-6 text-center text-sm text-white/70">
+    Already have an account?
+    <a href="{% url 'auth:login' %}" class="font-semibold text-primary hover:underline">Sign in</a>
+  </p>
+</div>
+{% endblock %}

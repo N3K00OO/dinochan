@@ -1,0 +1,193 @@
+:root {
+  --raga-primary: #38bdf8;
+  --raga-secondary: #0f172a;
+  --raga-accent: #22d3ee;
+  --raga-highlight: rgba(34, 211, 238, 0.35);
+}
+
+body {
+  background-attachment: fixed;
+  position: relative;
+}
+
+body:not(.js-enabled) [data-page-shell] {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+[data-page-shell] {
+  opacity: 0;
+  transform: translate3d(0, 36px, 0) scale(0.985);
+  filter: blur(18px);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform, filter;
+}
+
+[data-page-shell].is-ready {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+
+[data-page-shell].is-leaving {
+  opacity: 0;
+  transform: translate3d(0, 24px, 0) scale(0.98);
+  filter: blur(14px);
+}
+
+#page-transition {
+  transform: scale(1.05);
+  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+#page-transition.opacity-100 {
+  transform: scale(1);
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.12), transparent 55%),
+    radial-gradient(circle at 80% 30%, rgba(59, 130, 246, 0.1), transparent 60%),
+    radial-gradient(circle at 50% 80%, rgba(56, 189, 248, 0.12), transparent 60%);
+  filter: blur(0px);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.animate-spin-slow {
+  animation: spin 1.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+[data-animate] {
+  opacity: 0;
+  transform: translate3d(0, 32px, 0) scale(0.98);
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  filter: blur(8px);
+}
+
+[data-animate].is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0px);
+}
+
+.flash-message {
+  animation: flash-pop 1s ease forwards;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(30, 64, 175, 0.2));
+  border-image: linear-gradient(135deg, rgba(56, 189, 248, 0.7), rgba(59, 130, 246, 0.4)) 1;
+}
+
+@keyframes flash-pop {
+  0% {
+    transform: translateY(12px) scale(0.96);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(-4px) scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.interactive-glow {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.35s ease, background 0.35s ease;
+}
+
+.interactive-glow::after {
+  content: "";
+  position: absolute;
+  inset: -120%;
+  background: radial-gradient(circle at center, rgba(34, 211, 238, 0.45), transparent 65%);
+  opacity: 0;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  transform: scale(0.8) rotate(15deg);
+  pointer-events: none;
+}
+
+.interactive-glow:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 15px 40px rgba(14, 116, 144, 0.3);
+}
+
+.interactive-glow:hover::after {
+  opacity: 1;
+  transform: scale(1.1) rotate(0deg);
+}
+
+.interactive-glow:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow: 0 6px 18px rgba(14, 116, 144, 0.35);
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 9999px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at center, rgba(56, 189, 248, 0.45), rgba(14, 165, 233, 0.05));
+  pointer-events: none;
+  animation: ripple 0.75s ease-out forwards;
+}
+
+@keyframes ripple {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0.7;
+  }
+  100% {
+    width: 320px;
+    height: 320px;
+    opacity: 0;
+  }
+}
+
+.card-tilt {
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.card-tilt:hover {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-page-shell] {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+
+  [data-animate] {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .interactive-glow,
+  .card-tilt {
+    transition: none !important;
+  }
+
+  .ripple {
+    display: none !important;
+  }
+}

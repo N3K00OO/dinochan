@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Payment • RagaSpace{% endblock %}
+{% block content %}
+<section class="grid gap-8 lg:grid-cols-[2fr,1fr]">
+  <div class="rounded-[3rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-slate-950/50 backdrop-blur-2xl">
+    <h1 class="text-3xl font-semibold text-white">Payment summary</h1>
+    <p class="mt-2 text-white/70">Review your booking details and choose a payment method to confirm.</p>
+    <div class="mt-6 grid gap-6 md:grid-cols-2">
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <h2 class="text-sm font-semibold text-white">Venue</h2>
+        <p class="mt-2 text-lg font-semibold text-white">{{ booking.venue.name }}</p>
+        <p class="text-sm text-white/60">{{ booking.venue.city }}</p>
+        <p class="mt-2 text-sm text-white/70">{{ booking.start_datetime|date:'M d, Y H:i' }} — {{ booking.end_datetime|date:'M d, Y H:i' }}</p>
+        <p class="mt-2 text-sm text-white/60">Duration: {{ booking.duration_hours }} hours</p>
+      </div>
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <h2 class="text-sm font-semibold text-white">Add-ons</h2>
+        <ul class="mt-2 space-y-2 text-sm text-white/70">
+          {% for addon in booking.addons.all %}
+          <li class="flex justify-between"><span>{{ addon.name }}</span><span>Rp {{ addon.price }}</span></li>
+          {% empty %}
+          <li>No add-ons selected.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <h2 class="text-sm font-semibold text-white">Invoice</h2>
+      <dl class="mt-4 space-y-2 text-sm text-white/70">
+        <div class="flex justify-between"><dt>Venue subtotal</dt><dd>Rp {{ booking.base_cost }}</dd></div>
+        <div class="flex justify-between"><dt>Add-ons</dt><dd>Rp {{ booking.addons_total }}</dd></div>
+        <div class="flex justify-between"><dt>Deposit</dt><dd>Rp {{ booking.payment.deposit_amount }}</dd></div>
+        <div class="flex justify-between text-lg font-semibold text-white"><dt>Total due</dt><dd>Rp {{ booking.payment.total_amount }}</dd></div>
+      </dl>
+    </div>
+  </div>
+  <div class="rounded-[3rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-slate-950/50 backdrop-blur-2xl">
+    <h2 class="text-2xl font-semibold text-white">Choose payment method</h2>
+    <form method="post" class="mt-6 space-y-4">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div>
+        {{ form.method }}
+        {{ form.method.errors }}
+      </div>
+      <button type="submit" class="w-full rounded-2xl bg-primary px-5 py-3 text-base font-semibold text-white shadow-lg shadow-cyan-500/30 transition hover:bg-primary/80">Confirm payment</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

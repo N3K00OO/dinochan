@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Wishlist • RagaSpace{% endblock %}
+{% block content %}
+<section class="grid gap-8" data-animate>
+  <div class="rounded-[3rem] border border-white/10 bg-white/5 p-8 shadow-xl shadow-slate-950/50 backdrop-blur-2xl" data-animate>
+    <h1 class="text-4xl font-semibold text-white">Your wishlist</h1>
+    <p class="mt-2 max-w-2xl text-white/70">Keep track of venues you love. Quickly revisit them when you're ready to book.</p>
+  </div>
+  {% if approved_bookings %}
+  <div class="rounded-[2.5rem] border border-white/10 bg-white/5 p-8 shadow-xl shadow-slate-950/40 backdrop-blur-2xl" data-animate>
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 class="text-2xl font-semibold text-white">Bookings awaiting payment</h2>
+        <p class="text-sm text-white/70">Complete the payment below to confirm your reservation.</p>
+      </div>
+    </div>
+    <div class="mt-6 space-y-4">
+      {% for booking in approved_bookings %}
+      <article class="card-tilt rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/40" data-animate>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-widest text-white/50">{{ booking.venue.city }}</p>
+            <h3 class="text-xl font-semibold text-white">{{ booking.venue.name }}</h3>
+            <p class="text-sm text-white/60">{{ booking.start_datetime|date:'M d, Y H:i' }} — {{ booking.end_datetime|date:'M d, Y H:i' }}</p>
+          </div>
+          <span class="self-start rounded-full border border-emerald-300/30 bg-emerald-400/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">Approved</span>
+        </div>
+        <dl class="mt-4 grid gap-2 text-sm text-white/70 sm:grid-cols-2">
+          <div>
+            <dt class="text-xs uppercase tracking-wider text-white/50">Approved on</dt>
+            <dd class="text-white">{{ booking.approved_at|date:'M d, Y H:i' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wider text-white/50">Total due</dt>
+            <dd class="text-white">Rp {{ booking.total_cost }}</dd>
+          </div>
+        </dl>
+        <div class="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p class="text-sm text-white/70">Secure your booking by completing the payment.</p>
+          <a href="{% url 'payment' booking.pk %}" class="interactive-glow inline-flex items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-md shadow-cyan-500/40 transition hover:bg-primary/80" data-ripple>Complete payment</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="rounded-[2.5rem] border border-white/10 bg-white/5 p-8 shadow-xl shadow-slate-950/40 backdrop-blur-2xl" data-animate>
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 class="text-2xl font-semibold text-white">Saved venues</h2>
+        <p class="text-sm text-white/70">Keep track of venues you love. Quickly revisit them when you're ready to book.</p>
+      </div>
+    </div>
+    <div class="mt-6 space-y-6">
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-wishlist-grid>
+        {% for item in wishlists %}
+        {% include 'partials/wishlist_card.html' with venue=item.venue wishlist_description=item.venue.description|truncatechars:120 wishlist_next_url=request.get_full_path %}
+        {% endfor %}
+      </div>
+      <p class="text-white/70 {% if wishlists %}hidden{% endif %}" data-wishlist-empty>You haven't saved any venues yet.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

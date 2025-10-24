@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_cookie_value }}" />
+    <title>{% block title %}Venue Booking{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.ico' %}" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#38bdf8',
+              secondary: '#0f172a'
+            },
+            fontFamily: {
+              sans: ['"Poppins"', 'ui-sans-serif', 'system-ui']
+            }
+          }
+        }
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/ragaspace.css' %}" />
+    <script src="{% static 'js/app.js' %}" defer></script>
+    {% block head_extra %}{% endblock %}
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 font-sans text-slate-100 {% block body_class %}{% endblock %}">
+    <div class="fixed inset-0 -z-10 overflow-hidden">
+      <div class="absolute -left-40 top-20 h-96 w-96 rounded-full bg-primary/20 blur-3xl"></div>
+      <div class="absolute right-0 top-0 h-[32rem] w-[32rem] rounded-full bg-cyan-500/10 blur-3xl"></div>
+      <div class="absolute bottom-0 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-emerald-400/10 blur-3xl"></div>
+    </div>
+    {% block navbar %}
+    <header class="sticky top-0 z-40 w-full border-b border-slate-200 bg-white text-slate-900 shadow-lg shadow-slate-900/5" data-animate>
+      <nav class="flex w-full items-center px-4 py-3 sm:px-6 lg:px-10">
+        <div class="flex flex-1 items-center justify-start">
+          <a href="{% url 'home' %}" class="flex items-center justify-center">
+            <img src="{% static 'images/ragaspace-logo.svg' %}" alt="RagaSpace logo" class="h-10 w-10 object-contain" />
+          </a>
+        </div>
+        <div class="flex items-center justify-end md:hidden">
+          <button
+            type="button"
+            class="flex items-center justify-center rounded-lg p-2 text-slate-900 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-300"
+            aria-expanded="false"
+            aria-controls="mobile-navigation"
+            data-nav-toggle
+          >
+            <span class="sr-only">Toggle navigation</span>
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+        <div id="primary-navigation" class="hidden flex-1 items-center justify-center gap-24 text-base font-medium md:flex">
+          <a href="{% url 'home' %}" class="font-medium text-slate-900 transition hover:text-[#1B89AE]">Home</a>
+          <a href="{% url 'catalog' %}" class="font-medium text-slate-900 transition hover:text-[#1B89AE]">Catalog</a>
+          <a href="{% url 'wishlist' %}" class="font-medium text-slate-900 transition hover:text-[#1B89AE]">Wishlist</a>
+          <a href="{% url 'booked-places' %}" class="font-medium text-slate-900 transition hover:text-[#1B89AE]">Booked places</a>
+          {% if request.user.is_staff %}
+          <a href="{% url 'admin-dashboard' %}" class="font-medium text-slate-900 transition hover:text-[#1B89AE]">Admin workspace</a>
+          <a href="{% url 'admin-bookings' %}" class="font-medium text-slate-900 transition hover:text-[#1B89AE]">Booking approvals</a>
+          <a
+            href="{% url 'admin-venues' %}?show=create"
+            data-modal-target="venue-create-modal"
+            class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >Add venue</a
+          >
+          {% endif %}
+        </div>
+        <div class="hidden flex-1 items-center justify-end gap-4 text-base font-medium md:flex">
+          {% if user.is_authenticated %}
+          <span class="text-base font-medium text-slate-900">{{ request.user.username }}</span>
+          <span aria-hidden="true" class="text-slate-300">|</span>
+          <a href="{% url 'auth:logout' %}" class="font-medium text-red-500 transition hover:text-red-600">Logout</a>
+          {% else %}
+          <a href="{% url 'auth:login' %}" class="font-medium text-slate-900 transition hover:text-[#1B89AE]">Login</a>
+          <a href="{% url 'auth:register' %}" class="rounded-xl bg-[#1B89AE] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#15647F]">Register</a>
+          {% endif %}
+        </div>
+      </nav>
+      <div id="mobile-navigation" class="hidden border-t border-slate-200 bg-white px-4 pb-4 pt-2 text-sm font-medium text-slate-900 md:hidden">
+        <div class="space-y-4">
+          <div class="flex flex-col gap-2">
+            <a href="{% url 'home' %}" class="transition hover:text-[#1B89AE]">Home</a>
+            <a href="{% url 'catalog' %}" class="transition hover:text-[#1B89AE]">Catalog</a>
+            <a href="{% url 'wishlist' %}" class="transition hover:text-[#1B89AE]">Wishlist</a>
+            <a href="{% url 'booked-places' %}" class="transition hover:text-[#1B89AE]">Booked places</a>
+            {% if request.user.is_staff %}
+            <a href="{% url 'admin-dashboard' %}" class="transition hover:text-[#1B89AE]">Admin workspace</a>
+            <a href="{% url 'admin-bookings' %}" class="transition hover:text-[#1B89AE]">Booking approvals</a>
+            <a
+              href="{% url 'admin-venues' %}?show=create"
+              data-modal-target="venue-create-modal"
+              class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >Add venue</a
+            >
+            {% endif %}
+          </div>
+          <div class="flex flex-col gap-2 border-t border-slate-200 pt-3">
+            {% if user.is_authenticated %}
+            <span class="text-base font-medium text-slate-900">{{ request.user.username }}</span>
+            <a href="{% url 'auth:logout' %}" class="font-medium text-red-500 transition hover:text-red-600">Logout</a>
+            {% else %}
+            <a href="{% url 'auth:login' %}" class="transition hover:text-[#1B89AE]">Login</a>
+            <a href="{% url 'auth:register' %}" class="rounded-xl bg-[#1B89AE] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#15647F]">Register</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </header>
+    {% endblock %}
+    {% block navbar_extra %}{% endblock %}
+    <div class="{% block page_shell_class %}relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-6 pt-20 sm:px-8 lg:pt-28{% endblock %}" data-page-shell>
+      <main class="{% block main_class %}flex-1{% endblock %}">
+        {% block content %}{% endblock %}
+      </main>
+      {% block footer %}
+      <footer class="mt-24 w-full" data-animate>
+        <div class="w-full overflow-hidden bg-white text-slate-900">
+          <div class="flex w-full flex-col items-center px-6 py-5 text-center sm:px-10">
+            <h2 class="text-2xl font-semibold uppercase tracking-wide leading-tight sm:text-[26px]">Your Next Game is Just a Tap Away.</h2>
+          </div>
+          <div class="border-y border-slate-200">
+            <div class="mx-auto w-full max-w-6xl px-6 py-8 sm:px-10">
+              <div class="grid gap-8 text-left text-sm sm:grid-cols-2 lg:grid-cols-4 lg:gap-12">
+                <div class="space-y-3">
+                  <img src="{% static 'images/ragaspace-logo.svg' %}" alt="RagaSpace" class="h-12 w-12" />
+                  <div class="text-xs leading-tight text-slate-700">
+                    <p>Jl. Wahid Hasyim No. 100</p>
+                    <p>Jakarta Pusat</p>
+                    <p>DKI Jakarta, Indonesia</p>
+                    <p>10340</p>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-sm font-semibold uppercase tracking-wide text-slate-900">Contact</p>
+                  <p class="text-xs leading-tight text-slate-700">021 - 1234 5678</p>
+                  <p class="text-xs leading-tight text-slate-700">@ragaspace</p>
+                  <p class="text-xs leading-tight text-slate-700">ragaspace</p>
+                  <p class="text-xs leading-tight text-slate-700">ragaspace@gmail.com</p>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-sm font-semibold uppercase tracking-wide text-slate-900">Company</p>
+                  <a href="#" class="block text-xs leading-tight text-slate-700 transition hover:text-slate-900">About RagaSpace</a>
+                  <a href="#" class="block text-xs leading-tight text-slate-700 transition hover:text-slate-900">Careers</a>
+                  <a href="#" class="block text-xs leading-tight text-slate-700 transition hover:text-slate-900">Log and Media</a>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-sm font-semibold uppercase tracking-wide text-slate-900">Support</p>
+                  <a href="#" class="block text-xs leading-tight text-slate-700 transition hover:text-slate-900">Support Docs</a>
+                  <a href="#" class="block text-xs leading-tight text-slate-700 transition hover:text-slate-900">Contact</a>
+                  <a href="#" class="block text-xs leading-tight text-slate-700 transition hover:text-slate-900">Partnership</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-slate-900 text-white">
+            <div class="flex w-full flex-col gap-3 px-6 py-3 text-[11px] sm:flex-row sm:items-center sm:justify-between sm:px-10">
+              <p class="text-white/80">© 2025 RagaSpace All Right Served</p>
+              <div class="flex flex-wrap items-center gap-3 text-white/70">
+                <a href="#" class="transition hover:text-white">Privacy Policy</a>
+                <span aria-hidden="true">•</span>
+                <a href="#" class="transition hover:text-white">Terms</a>
+                <span aria-hidden="true">•</span>
+                <a href="#" class="transition hover:text-white">Code of Conduct</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+      {% endblock %}
+    </div>
+    <div
+      class="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex flex-col items-center gap-3 px-4 sm:px-6"
+      data-toast-root
+      aria-live="polite"
+      aria-atomic="false"
+    >
+      {% for message in messages %}
+      <div
+        class="pointer-events-auto w-full max-w-md rounded-3xl border border-white/20 bg-slate-950/90 px-5 py-4 text-sm font-medium text-white shadow-2xl shadow-slate-950/40 backdrop-blur transition-all duration-300 opacity-100"
+        data-toast-message
+        data-message-level="{{ message.tags }}"
+        data-toast-duration="500"
+        role="status"
+      >
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    <div
+      id="page-transition"
+      class="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-2xl transition-all duration-500 ease-out opacity-0 invisible"
+    >
+      <div class="flex flex-col items-center gap-4 text-white">
+        <div class="h-16 w-16 animate-spin-slow rounded-full border-2 border-cyan-400/60 border-t-transparent"></div>
+        <p class="text-sm uppercase tracking-[0.6em] text-cyan-100/80">RagaSpace</p>
+      </div>
+    </div>
+  </body>
+</html>

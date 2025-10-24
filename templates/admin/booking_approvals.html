@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% block head_extra %}
+{{ block.super }}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const modalStack = [];
+
+    const openModal = (modal) => {
+      if (!modal || modalStack.includes(modal)) {
+        return;
+      }
+      modal.classList.remove('hidden');
+      modal.setAttribute('aria-hidden', 'false');
+      modalStack.push(modal);
+      document.body.classList.add('overflow-hidden');
+    };
+
+    const closeModal = (modal) => {
+      if (!modal) {
+        return;
+      }
+      modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden', 'true');
+      const index = modalStack.indexOf(modal);
+      if (index !== -1) {
+        modalStack.splice(index, 1);
+      }
+      if (modalStack.length === 0) {
+        document.body.classList.remove('overflow-hidden');
+      }
+    };
+
+    document.querySelectorAll('[data-modal-target]').forEach((trigger) => {
+      trigger.addEventListener('click', (event) => {
+        const modalId = trigger.getAttribute('data-modal-target');
+        const modal = document.getElementById(modalId);
+        if (modal) {
+          event.preventDefault();
+          openModal(modal);
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-modal]').forEach((modal) => {
+      modal.addEventListener('click', (event) => {
+        const dismissTarget = event.target.closest('[data-modal-close]');
+        if (dismissTarget) {
+          event.preventDefault();
+          closeModal(modal);
+        }
+      });
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modalStack.length > 0) {
+        event.preventDefault();
+        const modal = modalStack[modalStack.length - 1];
+        closeModal(modal);
+      }
+    });
+  });
+</script>
+{% endblock %}
+{% block title %}Booking approvals • RagaSpace{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <header class="rounded-[2.5rem] border border-white/10 bg-white/5 p-8 shadow-xl shadow-slate-950/40 backdrop-blur-2xl">
+    <h1 class="text-3xl font-semibold text-white">Booking approvals</h1>
+    <p class="mt-2 max-w-2xl text-white/70">Review pending booking requests and decide whether to approve or decline them before guests can pay.</p>
+  </header>
+
+  <div class="space-y-6">
+    {% for booking in pending_bookings %}
+    <article class="rounded-[2.5rem] border border-white/10 bg-white/5 p-6 shadow-xl shadow-slate-950/40 backdrop-blur-xl">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div class="space-y-1">
+          <h2 class="text-2xl font-semibold text-white">{{ booking.venue.name }}</h2>
+          <p class="text-sm text-white/60">{{ booking.user.username }} • {{ booking.start_datetime|date:'M d, Y H:i' }} — {{ booking.end_datetime|date:'M d, Y H:i' }}</p>
+          <p class="text-sm text-white/60">Requested on {{ booking.created_at|date:'M d, Y H:i' }}</p>
+        </div>
+        <button
+          type="button"
+          data-modal-target="booking-{{ booking.pk }}"
+          class="self-start rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-md shadow-cyan-500/40 transition hover:bg-primary/80"
+        >Review</button>
+      </div>
+      {% if booking.notes %}
+      <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+        <h3 class="text-xs uppercase tracking-widest text-white/50">Guest notes</h3>
+        <p class="mt-2 leading-relaxed">{{ booking.notes }}</p>
+      </div>
+      {% endif %}
+    </article>
+
+    <div
+      id="booking-{{ booking.pk }}"
+      class="fixed inset-0 z-50 hidden"
+      data-modal
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="booking-{{ booking.pk }}-title"
+      tabindex="-1"
+    >
+      <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" data-modal-close></div>
+      <div class="relative mx-auto mt-24 w-full max-w-xl rounded-3xl border border-white/10 bg-slate-900/95 p-6 shadow-2xl shadow-slate-950/60">
+        <div class="flex items-center justify-between">
+          <h3 id="booking-{{ booking.pk }}-title" class="text-xl font-semibold text-white">Review booking request</h3>
+          <button
+            type="button"
+            class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-lg text-white transition hover:bg-white/20"
+            data-modal-close
+            aria-label="Close"
+          >×</button>
+        </div>
+        <div class="mt-4 space-y-4 text-sm text-white/80">
+          <div class="grid gap-2 sm:grid-cols-2">
+            <div>
+              <p class="text-xs uppercase tracking-wider text-white/50">Venue</p>
+              <p class="text-white">{{ booking.venue.name }}</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase tracking-wider text-white/50">Guest</p>
+              <p class="text-white">{{ booking.user.username }}</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase tracking-wider text-white/50">Start</p>
+              <p class="text-white">{{ booking.start_datetime|date:'M d, Y H:i' }}</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase tracking-wider text-white/50">End</p>
+              <p class="text-white">{{ booking.end_datetime|date:'M d, Y H:i' }}</p>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wider text-white/50">Add-ons</p>
+            {% with addons=booking.addons.all %}
+            {% if addons %}
+            <ul class="mt-2 space-y-1">
+              {% for addon in addons %}
+              <li class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white/80 flex items-center justify-between">
+                <span>{{ addon.name }}</span>
+                <span>Rp {{ addon.price }}</span>
+              </li>
+              {% empty %}
+              <li class="text-white/60">No add-ons selected.</li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <p class="mt-2 text-white/60">No add-ons selected.</p>
+            {% endif %}
+            {% endwith %}
+          </div>
+          {% if booking.notes %}
+          <div>
+            <p class="text-xs uppercase tracking-wider text-white/50">Guest notes</p>
+            <p class="mt-2 text-white/70">{{ booking.notes }}</p>
+          </div>
+          {% endif %}
+        </div>
+        <div class="mt-6 grid gap-3 sm:grid-cols-2">
+          <form method="post" action="{% url 'admin-bookings' %}" class="space-y-3">
+            {% csrf_token %}
+            <input type="hidden" name="booking_id" value="{{ booking.pk }}" />
+            <input type="hidden" name="decision" value="approve" />
+            <button type="submit" class="w-full rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-emerald-500/40 transition hover:bg-emerald-400">Approve booking</button>
+          </form>
+          <form method="post" action="{% url 'admin-bookings' %}" class="space-y-3">
+            {% csrf_token %}
+            <input type="hidden" name="booking_id" value="{{ booking.pk }}" />
+            <input type="hidden" name="decision" value="cancel" />
+            <button type="submit" class="w-full rounded-2xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-rose-500/40 transition hover:bg-rose-400">Decline request</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="rounded-[2.5rem] border border-white/10 bg-white/5 p-8 text-center text-white/70 backdrop-blur-xl">
+      All caught up! There are no pending booking requests at the moment.
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

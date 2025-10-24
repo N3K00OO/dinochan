@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% block title %}{{ venue.name }} • RagaSpace{% endblock %}
+{% block head_extra %}
+{{ block.super }}
+<style>
+  .addon-option {
+    position: relative;
+    display: block;
+  }
+
+  .addon-option__input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+  }
+
+  .addon-option__content {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.75rem;
+    color: rgba(255, 255, 255, 0.8);
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+
+  .addon-option__check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(15, 23, 42, 1);
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  }
+
+  .addon-option__check svg {
+    opacity: 0;
+    transform: scale(0.75);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .addon-option__description {
+    display: block;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 0.25rem;
+  }
+
+  .addon-option__input:focus-visible + .addon-option__content {
+    outline: 2px solid rgba(56, 189, 248, 0.75);
+    outline-offset: 2px;
+  }
+
+  .addon-option__input:checked + .addon-option__content {
+    border-color: rgba(56, 189, 248, 0.7);
+    background: rgba(56, 189, 248, 0.12);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .addon-option__input:checked + .addon-option__content .addon-option__check {
+    border-color: transparent;
+    background: rgba(56, 189, 248, 1);
+    color: rgba(255, 255, 255, 1);
+    transform: scale(1.05);
+  }
+
+  .addon-option__input:checked + .addon-option__content .addon-option__check svg {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .addon-option__content:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="grid gap-10 lg:grid-cols-[2fr,1fr]">
+  <div class="space-y-8">
+    <div class="rounded-[3rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-slate-950/50 backdrop-blur-2xl">
+      <img src="{{ venue.image_url }}" alt="{{ venue.name }}" class="h-80 w-full rounded-3xl object-cover" />
+      <div class="mt-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-[0.4em] text-white/50">{{ venue.category.name }}</p>
+          <h1 class="text-4xl font-semibold text-white">{{ venue.name }}</h1>
+          <p class="mt-2 text-white/70">{{ venue.city }} • Capacity {{ venue.capacity }} guests</p>
+        </div>
+        <form method="post" action="{% url 'wishlist-toggle' venue.id %}" data-wishlist-form>
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ wishlist_next_url|default:request.get_full_path }}" />
+          <button
+            type="submit"
+            data-venue="{{ venue.id }}"
+            data-wishlisted="{% if venue.id in wishlist_ids %}true{% else %}false{% endif %}"
+            data-venue-name="{{ venue.name|escape }}"
+            data-venue-city="{{ venue.city|escape }}"
+            data-venue-category="{{ venue.category.name|escape }}"
+            data-venue-price="{{ venue.price_per_hour }}"
+            data-venue-url="{% url 'venue-detail' slug=venue.slug %}"
+            data-venue-image="{{ venue.image_url|escape }}"
+            data-venue-description="{{ venue.description|truncatechars:120|escape }}"
+            data-toggle-url="{% url 'wishlist-toggle-api' venue.id %}"
+            class="wishlist-button {% if venue.id in wishlist_ids %}wishlist-button--active{% endif %} rounded-full border border-white/20 bg-white/10 p-3 text-white transition hover:bg-white/20"
+            aria-label="Toggle wishlist"
+            aria-pressed="{% if venue.id in wishlist_ids %}true{% else %}false{% endif %}"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="{% if venue.id in wishlist_ids %}#ef4444{% else %}none{% endif %}" viewBox="0 0 24 24" stroke-width="1.5" stroke="{% if venue.id in wishlist_ids %}#ef4444{% else %}currentColor{% endif %}" class="h-7 w-7">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+            </svg>
+          </button>
+        </form>
+      </div>
+      <p class="mt-4 text-white/70">{{ venue.description }}</p>
+      <div class="mt-6 grid gap-4 md:grid-cols-2">
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <h2 class="text-sm font-semibold text-white">Facilities</h2>
+          <ul class="mt-2 grid gap-1 text-sm text-white/70">
+            {% for facility in venue.facilities_list %}
+            <li>• {{ facility }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <h2 class="text-sm font-semibold text-white">Location</h2>
+          <p class="mt-2 text-sm text-white/70">{{ venue.address|default:'Contact us for the full location details.' }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="rounded-[3rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-slate-950/50 backdrop-blur-2xl">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-semibold text-white">Reviews</h2>
+        <span class="text-sm text-white/60">{{ reviews|length }} reviews</span>
+      </div>
+      <form method="post" class="mt-6 space-y-4">
+        {% csrf_token %}
+        {{ review_form.non_field_errors }}
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            {{ review_form.rating.label_tag }}
+            {{ review_form.rating }}
+            {{ review_form.rating.errors }}
+          </div>
+          <div class="md:col-span-2">
+            {{ review_form.comment.label_tag }}
+            {{ review_form.comment }}
+            {{ review_form.comment.errors }}
+          </div>
+        </div>
+        <button type="submit" name="submit_review" class="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/30 transition hover:bg-primary/80">Submit review</button>
+      </form>
+      <div class="mt-8 space-y-4">
+        {% for review in reviews %}
+        <article class="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-semibold text-white">{{ review.user.username }}</p>
+            <p class="text-sm text-white/60">{{ review.rating }}/5</p>
+          </div>
+          <p class="mt-2 text-sm text-white/70">{{ review.comment }}</p>
+          <p class="mt-2 text-xs text-white/50">{{ review.created_at|date:'M d, Y H:i' }}</p>
+        </article>
+        {% empty %}
+        <p class="text-sm text-white/60">No reviews yet. Be the first to share your experience.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="space-y-8">
+    <div class="rounded-[3rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-slate-950/50 backdrop-blur-2xl">
+      <h2 class="text-2xl font-semibold text-white">Booking details</h2>
+      <p class="mt-2 text-white/70">Choose your preferred date, time, and add-ons. Available hours: {{ venue.available_start_time }} - {{ venue.available_end_time }}</p>
+      <p class="mt-2 rounded-2xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+        Booking requests require admin approval before payment. You'll be notified once a manager reviews your request.
+      </p>
+      {% if can_book %}
+      <form method="post" class="mt-6 space-y-4">
+        {% csrf_token %}
+        {{ booking_form.non_field_errors }}
+        <div>
+          {{ booking_form.start_datetime.label_tag }}
+          {{ booking_form.start_datetime }}
+          {{ booking_form.start_datetime.errors }}
+        </div>
+        <div>
+          {{ booking_form.end_datetime.label_tag }}
+          {{ booking_form.end_datetime }}
+          {{ booking_form.end_datetime.errors }}
+        </div>
+        <div>
+          {{ booking_form.notes.label_tag }}
+          {{ booking_form.notes }}
+          {{ booking_form.notes.errors }}
+        </div>
+        <div>
+          <h3 class="mb-2 text-sm font-semibold text-white">Enhance your booking</h3>
+          {% if booking_form.addons|length %}
+          <div class="space-y-2">
+            {% for checkbox in booking_form.addons %}
+            <label class="addon-option">
+              <input
+                type="checkbox"
+                name="{{ booking_form.addons.name }}"
+                value="{{ checkbox.choice_value }}"
+                id="{{ checkbox.id_for_label }}"
+                class="{{ checkbox.attrs.class|default:'addon-option__input' }}"
+                {% if checkbox.is_checked %}checked{% endif %}
+                {% for attr, value in checkbox.attrs.items %}{% if attr != 'class' and attr != 'id' %} {{ attr }}="{{ value }}"{% endif %}{% endfor %}
+              />
+              <div class="addon-option__content">
+                <span class="addon-option__check" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.704 5.29a1 1 0 0 1 0 1.42l-7.25 7.25a1 1 0 0 1-1.42 0l-3.25-3.25a1 1 0 1 1 1.42-1.42l2.54 2.54 6.54-6.54a1 1 0 0 1 1.42 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </span>
+                <span class="leading-snug">
+                  <span class="font-semibold text-white">{{ checkbox.choice_label }}</span>
+                </span>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-sm text-white/60">No add-ons are available for this venue.</p>
+          {% endif %}
+          {{ booking_form.addons.errors }}
+        </div>
+        <button type="submit" class="w-full rounded-2xl bg-primary px-5 py-3 text-base font-semibold text-white shadow-lg shadow-cyan-500/30 transition hover:bg-primary/80">Book this venue</button>
+      </form>
+      {% else %}
+      <p class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+        Booking is unavailable while using an administrator account. Please switch to a standard user profile to place a booking.
+      </p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

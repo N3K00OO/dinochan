@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}{% if venue %}Edit Venue{% else %}Create Venue{% endif %} • RagaSpace{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <div class="rounded-[2.5rem] border border-white/10 bg-white/5 p-6 shadow-xl shadow-slate-950/40 backdrop-blur-2xl">
+    <h1 class="text-3xl font-semibold text-white">{% if venue %}Edit {{ venue.name }}{% else %}Create a new venue{% endif %}</h1>
+    <p class="mt-2 text-white/70">Provide complete details to keep the catalogue consistent.</p>
+  </div>
+
+  <form method="post" class="space-y-8">
+    {% csrf_token %}
+    <div class="grid gap-6 rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl md:grid-cols-2">
+      {% for field in form %}
+        {% if field.name == 'name' %}
+        <div class="flex flex-col gap-2">
+          <label for="{{ field.id_for_label }}" class="text-sm font-medium text-white/70">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}
+          <p class="text-xs text-white/50">{{ field.help_text }}</p>
+          {% endif %}
+          {% if field.errors %}
+          <p class="text-sm text-rose-300">{{ field.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        <div class="flex flex-col gap-2">
+          <label for="{{ form.category.id_for_label }}" class="text-sm font-medium text-white/70">{{ form.category.label }}</label>
+          {{ form.category }}
+          {% if form.category.help_text %}
+          <p class="text-xs text-white/50">{{ form.category.help_text }}</p>
+          {% endif %}
+          {% if form.category.errors %}
+          <p class="text-sm text-rose-300">{{ form.category.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        {% elif field.name != 'category' %}
+        <div class="flex flex-col gap-2">
+          <label for="{{ field.id_for_label }}" class="text-sm font-medium text-white/70">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}
+          <p class="text-xs text-white/50">{{ field.help_text }}</p>
+          {% endif %}
+          {% if field.errors %}
+          <p class="text-sm text-rose-300">{{ field.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+      <h2 class="text-xl font-semibold text-white">Add-ons</h2>
+      <p class="mt-2 text-sm text-white/70">Optional upgrades will be shown on the booking page.</p>
+      {{ formset.management_form }}
+      {% if formset.non_form_errors %}
+      <p class="mt-2 rounded-xl border border-rose-300/40 bg-rose-400/10 px-4 py-2 text-sm text-rose-200">{{ formset.non_form_errors|striptags }}</p>
+      {% endif %}
+      <div class="mt-4 space-y-4">
+        {% for addon_form in formset %}
+        <div class="grid gap-4 rounded-2xl border border-white/10 bg-white/10 p-4 md:grid-cols-3">
+          {% for hidden in addon_form.hidden_fields %}
+          {{ hidden }}
+          {% endfor %}
+          {% for field in addon_form.visible_fields %}
+          <div class="flex flex-col gap-2">
+            <label for="{{ field.id_for_label }}" class="text-sm font-medium text-white/70">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-sm text-rose-300">{{ field.errors|striptags }}</p>
+            {% endif %}
+          </div>
+          {% endfor %}
+          {% if addon_form.can_delete %}
+          <div class="flex items-center justify-end">
+            <label class="flex items-center gap-2 text-sm text-rose-200">
+              {{ addon_form.delete }} Remove
+            </label>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-3 rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl md:flex-row md:justify-between">
+      <a href="{% url 'admin-venues' %}" class="rounded-2xl border border-white/20 px-5 py-2 text-center text-sm font-semibold text-white transition hover:bg-white/10">Cancel</a>
+      <button type="submit" class="rounded-2xl bg-primary px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-cyan-500/40 transition hover:bg-primary/80">Save changes</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
