@@ -1,6 +1,7 @@
 """User facing catalog views."""
 from __future__ import annotations
 
+from datetime import date, timedelta
 from typing import Any
 
 from django.contrib import messages
@@ -10,6 +11,7 @@ from django.db.models import Count
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.text import Truncator
 from django.views.generic import DetailView, ListView, TemplateView
 
@@ -108,11 +110,13 @@ class VenueDetailView(EnsureCsrfCookieMixin, LoginRequiredMixin, DetailView):
         if can_book:
             booking_form = BookingForm(self.request.POST or None, venue=venue)
         review_form = ReviewForm(self.request.POST or None)
+        date_availability = self._build_date_availability(venue)
         context.update(
             {
                 "booking_form": booking_form,
                 "review_form": review_form,
                 "can_book": can_book,
+                "date_availability": date_availability,
                 "wishlist_ids": set(
                     Wishlist.objects.filter(user=self.request.user).values_list("venue_id", flat=True)
                 ),
@@ -120,6 +124,38 @@ class VenueDetailView(EnsureCsrfCookieMixin, LoginRequiredMixin, DetailView):
             }
         )
         return context
+
+    def _build_date_availability(self, venue: Venue) -> list[dict[str, Any]]:
+        today = timezone.localdate()
+        available_dates: set[date] = set()
+        for availability in venue.availabilities.all():
+            start = timezone.localtime(availability.start_datetime).date()
+            end = timezone.localtime(availability.end_datetime).date()
+            current = start
+            while current <= end:
+                if current >= today:
+                    available_dates.add(current)
+                current += timedelta(days=1)
+
+        if not available_dates:
+            available_dates = {today + timedelta(days=offset) for offset in range(14)}
+
+        reserved_dates: set[date] = set()
+        bookings = venue.bookings.filter(status__in=Booking.ACTIVE_STATUSES)
+        for booking in bookings:
+            for reserved_date in booking.reserved_dates:
+                if reserved_date >= today:
+                    reserved_dates.add(reserved_date)
+
+        availability = []
+        for availability_date in sorted(available_dates):
+            availability.append(
+                {
+                    "date": availability_date,
+                    "is_reserved": availability_date in reserved_dates,
+                }
+            )
+        return availability
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         self.object = self.get_object()

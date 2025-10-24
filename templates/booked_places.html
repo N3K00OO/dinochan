@@ -26,11 +26,18 @@
       <dl class="mt-4 grid gap-2 text-sm text-white/70 sm:grid-cols-2">
         <div>
           <dt class="text-xs uppercase tracking-wider text-white/50">Start</dt>
-          <dd class="text-white">{{ booking.start_datetime|date:'M d, Y H:i' }}</dd>
+          <dd class="text-white">
+            {{ booking.start_date|date:'M d, Y' }}
+            {% if booking.end_date > booking.start_date %}
+              — {{ booking.end_date|date:'M d, Y' }}
+            {% endif %}
+          </dd>
         </div>
         <div>
           <dt class="text-xs uppercase tracking-wider text-white/50">End</dt>
-          <dd class="text-white">{{ booking.end_datetime|date:'M d, Y H:i' }}</dd>
+          <dd class="text-white">
+            {{ booking.end_date|date:'M d, Y' }}
+          </dd>
         </div>
         <div>
           <dt class="text-xs uppercase tracking-wider text-white/50">Booked on</dt>

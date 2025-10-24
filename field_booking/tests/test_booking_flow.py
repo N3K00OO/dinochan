@@ -47,13 +47,12 @@ class BookingFlowTests(TestCase):
 
     def _create_confirmed_booking(self) -> Booking:
         self.client.force_login(self.user)
-        start = timezone.now() + timedelta(days=4)
-        end = start + timedelta(hours=1)
+        start_date = timezone.localdate() + timedelta(days=4)
         self.client.post(
             reverse("venue-detail", kwargs={"slug": self.venue.slug}),
             {
-                "start_datetime": start.strftime("%Y-%m-%dT%H:%M"),
-                "end_datetime": end.strftime("%Y-%m-%dT%H:%M"),
+                "start_datetime": start_date.strftime("%Y-%m-%d"),
+                "end_datetime": start_date.strftime("%Y-%m-%d"),
             },
         )
         booking = Booking.objects.get(user=self.user, venue=self.venue)
@@ -66,13 +65,13 @@ class BookingFlowTests(TestCase):
 
     def test_user_can_submit_booking_request(self) -> None:
         self.client.force_login(self.user)
-        start = timezone.now() + timedelta(days=1)
-        end = start + timedelta(hours=2)
+        start_date = timezone.localdate() + timedelta(days=1)
+        end_date = start_date + timedelta(days=1)
         response = self.client.post(
             reverse("venue-detail", kwargs={"slug": self.venue.slug}),
             {
-                "start_datetime": start.strftime("%Y-%m-%dT%H:%M"),
-                "end_datetime": end.strftime("%Y-%m-%dT%H:%M"),
+                "start_datetime": start_date.strftime("%Y-%m-%d"),
+                "end_datetime": end_date.strftime("%Y-%m-%d"),
                 "notes": "Looking forward to the event.",
                 "addons": [str(self.addon.pk)],
             },
@@ -84,14 +83,15 @@ class BookingFlowTests(TestCase):
         self.assertTrue(hasattr(booking, "payment"))
         self.assertEqual(booking.payment.total_amount, booking.total_cost)
 
-    def test_booking_requires_distinct_times(self) -> None:
+    def test_booking_rejects_end_date_before_start(self) -> None:
         self.client.force_login(self.user)
-        start = timezone.now() + timedelta(days=2)
+        start_date = timezone.localdate() + timedelta(days=2)
+        end_date = start_date - timedelta(days=1)
         response = self.client.post(
             reverse("venue-detail", kwargs={"slug": self.venue.slug}),
             {
-                "start_datetime": start.strftime("%Y-%m-%dT%H:%M"),
-                "end_datetime": start.strftime("%Y-%m-%dT%H:%M"),
+                "start_datetime": start_date.strftime("%Y-%m-%d"),
+                "end_datetime": end_date.strftime("%Y-%m-%d"),
             },
             follow=True,
         )
@@ -104,13 +104,12 @@ class BookingFlowTests(TestCase):
 
     def test_user_can_pay_once_booking_is_approved(self) -> None:
         self.client.force_login(self.user)
-        start = timezone.now() + timedelta(days=3)
-        end = start + timedelta(hours=1)
+        start_date = timezone.localdate() + timedelta(days=3)
         self.client.post(
             reverse("venue-detail", kwargs={"slug": self.venue.slug}),
             {
-                "start_datetime": start.strftime("%Y-%m-%dT%H:%M"),
-                "end_datetime": end.strftime("%Y-%m-%dT%H:%M"),
+                "start_datetime": start_date.strftime("%Y-%m-%d"),
+                "end_datetime": start_date.strftime("%Y-%m-%d"),
             },
         )
         booking = Booking.objects.get(user=self.user, venue=self.venue)
@@ -134,13 +133,12 @@ class BookingFlowTests(TestCase):
 
     def test_approved_booking_visible_on_booked_places(self) -> None:
         self.client.force_login(self.user)
-        start = timezone.now() + timedelta(days=5)
-        end = start + timedelta(hours=2)
+        start_date = timezone.localdate() + timedelta(days=5)
         self.client.post(
             reverse("venue-detail", kwargs={"slug": self.venue.slug}),
             {
-                "start_datetime": start.strftime("%Y-%m-%dT%H:%M"),
-                "end_datetime": end.strftime("%Y-%m-%dT%H:%M"),
+                "start_datetime": start_date.strftime("%Y-%m-%d"),
+                "end_datetime": start_date.strftime("%Y-%m-%d"),
             },
         )
         booking = Booking.objects.get(user=self.user, venue=self.venue)

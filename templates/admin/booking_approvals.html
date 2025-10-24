@@ -75,7 +75,12 @@
       <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div class="space-y-1">
           <h2 class="text-2xl font-semibold text-white">{{ booking.venue.name }}</h2>
-          <p class="text-sm text-white/60">{{ booking.user.username }} • {{ booking.start_datetime|date:'M d, Y H:i' }} — {{ booking.end_datetime|date:'M d, Y H:i' }}</p>
+          <p class="text-sm text-white/60">{{ booking.user.username }} •
+            {{ booking.start_date|date:'M d, Y' }}
+            {% if booking.end_date > booking.start_date %}
+              — {{ booking.end_date|date:'M d, Y' }}
+            {% endif %}
+          </p>
           <p class="text-sm text-white/60">Requested on {{ booking.created_at|date:'M d, Y H:i' }}</p>
         </div>
         <button
@@ -124,11 +129,16 @@
             </div>
             <div>
               <p class="text-xs uppercase tracking-wider text-white/50">Start</p>
-              <p class="text-white">{{ booking.start_datetime|date:'M d, Y H:i' }}</p>
+              <p class="text-white">
+                {{ booking.start_date|date:'M d, Y' }}
+                {% if booking.end_date > booking.start_date %}
+                  — {{ booking.end_date|date:'M d, Y' }}
+                {% endif %}
+              </p>
             </div>
             <div>
               <p class="text-xs uppercase tracking-wider text-white/50">End</p>
-              <p class="text-white">{{ booking.end_datetime|date:'M d, Y H:i' }}</p>
+              <p class="text-white">{{ booking.end_date|date:'M d, Y' }}</p>
             </div>
           </div>
           <div>

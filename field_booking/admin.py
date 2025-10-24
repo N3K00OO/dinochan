@@ -11,7 +11,7 @@ class PaymentInline(admin.StackedInline):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ("venue", "user", "start_datetime", "end_datetime")
+    list_display = ("venue", "user", "start_date", "end_date")
     list_filter = ("venue", "user")
     search_fields = ("venue__name", "user__username")
     inlines = [PaymentInline]

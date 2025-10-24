@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from datetime import date, datetime, timedelta
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -57,8 +58,39 @@ class Booking(models.Model):
 
     @property
     def duration_hours(self) -> int:
+        if self.venue_id:
+            start_local = timezone.localtime(self.start_datetime)
+            end_local = timezone.localtime(self.end_datetime)
+            if (
+                start_local.time() == self.venue.available_start_time
+                and end_local.time() == self.venue.available_end_time
+                and end_local.date() >= start_local.date()
+            ):
+                day_span = (end_local.date() - start_local.date()).days + 1
+                daily_delta = datetime.combine(start_local.date(), self.venue.available_end_time) - datetime.combine(
+                    start_local.date(), self.venue.available_start_time
+                )
+                return max(int(daily_delta.total_seconds() // 3600) * day_span, 0)
         delta = self.end_datetime - self.start_datetime
         return int(delta.total_seconds() // 3600)
+
+    @property
+    def start_date(self) -> date:
+        return timezone.localtime(self.start_datetime).date()
+
+    @property
+    def end_date(self) -> date:
+        return timezone.localtime(self.end_datetime).date()
+
+    @property
+    def reserved_dates(self) -> list[date]:
+        current = self.start_date
+        end = self.end_date
+        dates: list[date] = []
+        while current <= end:
+            dates.append(current)
+            current += timedelta(days=1)
+        return dates
 
     @property
     def addons_total(self) -> Decimal:
