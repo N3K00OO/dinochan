@@ -61,24 +61,16 @@ class Booking(models.Model):
         if self.venue_id:
             start_local = timezone.localtime(self.start_datetime)
             end_local = timezone.localtime(self.end_datetime)
-            start_time = self.venue.available_start_time
-            end_time = self.venue.available_end_time
             if (
-                start_local.time() == start_time
-                and end_local.time() == end_time
-                and end_local >= start_local
+                start_local.time() == self.venue.available_start_time
+                and end_local.time() == self.venue.available_end_time
+                and end_local.date() >= start_local.date()
             ):
-                base_start = datetime.combine(start_local.date(), start_time)
-                base_end = datetime.combine(start_local.date(), end_time)
-                if base_end <= base_start:
-                    base_end += timedelta(days=1)
-                daily_hours = int((base_end - base_start).total_seconds() // 3600)
-                day_span = (end_local.date() - start_local.date()).days
-                if end_time <= start_time:
-                    cycles = max(day_span, 1)
-                else:
-                    cycles = day_span + 1
-                return max(daily_hours * cycles, 0)
+                day_span = (end_local.date() - start_local.date()).days + 1
+                daily_delta = datetime.combine(start_local.date(), self.venue.available_end_time) - datetime.combine(
+                    start_local.date(), self.venue.available_start_time
+                )
+                return max(int(daily_delta.total_seconds() // 3600) * day_span, 0)
         delta = self.end_datetime - self.start_datetime
         return int(delta.total_seconds() // 3600)
 

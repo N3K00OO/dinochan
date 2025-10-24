@@ -1,11 +1,9 @@
 """Booking and payment forms."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime
 
 from django import forms
-from django.contrib.admin.widgets import AdminDateWidget
 from django.utils import timezone
 
 from .models import Booking, Payment
@@ -129,16 +127,60 @@ class BookingForm(forms.ModelForm):
         end_date = cleaned_data.get("end_datetime")
 
         if start_date and end_date:
-            start, end = normalize_booking_window(start_date, end_date, self.venue)
+            start_time = getattr(self.venue, "available_start_time", None)
+            end_time = getattr(self.venue, "available_end_time", None)
+
+            if start_time is None or end_time is None:
+                start_time = datetime.min.time()
+                end_time = datetime.max.time().replace(microsecond=0)
+
+            start = datetime.combine(start_date, start_time)
+            end = datetime.combine(end_date, end_time)
+
+            current_timezone = timezone.get_current_timezone()
+            if timezone.is_naive(start):
+                try:
+                    start = timezone.make_aware(start, timezone=current_timezone)
+                except Exception:
+                    try:
+                        start = timezone.make_aware(start, timezone=current_timezone, is_dst=True)
+                    except Exception:
+                        # Timezone support disabled or timezone not found; keep naive datetime.
+                        pass
+            if timezone.is_naive(end):
+                try:
+                    end = timezone.make_aware(end, timezone=current_timezone)
+                except Exception:
+                    try:
+                        end = timezone.make_aware(end, timezone=current_timezone, is_dst=True)
+                    except Exception:
+                        pass
+
             cleaned_data["start_datetime"] = start
             cleaned_data["end_datetime"] = end
 
-            if end_date < start_date:
+            if end.date() < start.date():
                 raise forms.ValidationError("End date must be on or after the start date.")
 
             if end <= start:
                 raise forms.ValidationError(
                     "Selected dates must fall within the venue's available hours."
+                )
+
+        if start_date and end_date and self.venue is not None:
+            start = cleaned_data.get("start_datetime")
+            end = cleaned_data.get("end_datetime")
+            overlapping = (
+                Booking.objects.filter(
+                    venue=self.venue,
+                    status__in=Booking.ACTIVE_STATUSES,
+                )
+                .filter(start_datetime__lt=end, end_datetime__gt=start)
+                .exclude(pk=self.instance.pk)
+            )
+            if overlapping.exists():
+                raise forms.ValidationError(
+                    "This venue is already booked for the selected dates."
                 )
 
             if self.venue is not None:
