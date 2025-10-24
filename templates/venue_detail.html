@@ -177,7 +177,7 @@
   <div class="space-y-8">
     <div class="rounded-[3rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-slate-950/50 backdrop-blur-2xl">
       <h2 class="text-2xl font-semibold text-white">Booking details</h2>
-      <p class="mt-2 text-white/70">Choose your preferred date, time, and add-ons. Available hours: {{ venue.available_start_time }} - {{ venue.available_end_time }}</p>
+      <p class="mt-2 text-white/70">Choose your preferred booking dates and optional add-ons. Each reservation covers the venue's daily hours: {{ venue.available_start_time }} - {{ venue.available_end_time }}</p>
       <p class="mt-2 rounded-2xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
         Booking requests require admin approval before payment. You'll be notified once a manager reviews your request.
       </p>
@@ -185,6 +185,28 @@
       <form method="post" class="mt-6 space-y-4">
         {% csrf_token %}
         {{ booking_form.non_field_errors }}
+        {% if date_availability %}
+        <div>
+          <h3 class="text-sm font-semibold text-white">Upcoming availability</h3>
+          <p class="mt-1 text-xs text-white/60">Dates marked as reserved are no longer available.</p>
+          <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {% for day in date_availability %}
+            <div
+              class="flex items-center justify-between rounded-2xl border px-4 py-3 {% if day.is_reserved %}border-white/20 bg-white/10{% else %}border-emerald-400/40 bg-emerald-400/10{% endif %}"
+            >
+              <span class="text-sm font-semibold text-white">{{ day.date|date:'M d, Y' }}</span>
+              {% if day.is_reserved %}
+              <span class="text-xs font-medium text-white/70">Reserved</span>
+              {% else %}
+              <span class="text-xs font-medium text-emerald-200">Available</span>
+              {% endif %}
+            </div>
+            {% empty %}
+            <p class="text-sm text-white/60">No upcoming availability found.</p>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
         <div>
           {{ booking_form.start_datetime.label_tag }}
           {{ booking_form.start_datetime }}

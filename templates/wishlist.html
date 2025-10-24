@@ -21,7 +21,12 @@
           <div>
             <p class="text-xs uppercase tracking-widest text-white/50">{{ booking.venue.city }}</p>
             <h3 class="text-xl font-semibold text-white">{{ booking.venue.name }}</h3>
-            <p class="text-sm text-white/60">{{ booking.start_datetime|date:'M d, Y H:i' }} — {{ booking.end_datetime|date:'M d, Y H:i' }}</p>
+            <p class="text-sm text-white/60">
+              {{ booking.start_date|date:'M d, Y' }}
+              {% if booking.end_date > booking.start_date %}
+                — {{ booking.end_date|date:'M d, Y' }}
+              {% endif %}
+            </p>
           </div>
           <span class="self-start rounded-full border border-emerald-300/30 bg-emerald-400/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">Approved</span>
         </div>
