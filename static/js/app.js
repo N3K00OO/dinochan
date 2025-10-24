@@ -74,12 +74,15 @@ const toastLevelClassNames = {
 const DEFAULT_TOAST_DURATION = 3000;
 const TOAST_REMOVE_BUFFER = 600;
 
-const clearToastTimers = (toast) => {
+const clearToastTimers = (toast, { keepRemoveTimer = false } = {}) => {
   if (!toast) {
     return;
   }
   const timers = ['toastTimer', 'toastRemoveTimer'];
   timers.forEach((timerKey) => {
+    if (keepRemoveTimer && timerKey === 'toastRemoveTimer') {
+      return;
+    }
     const timerId = toast.dataset[timerKey];
     if (timerId) {
       window.clearTimeout(Number(timerId));
@@ -220,7 +223,7 @@ const registerToastElement = (toast, { level, duration = DEFAULT_TOAST_DURATION,
     hideToast(toast);
   });
   toast.addEventListener('mouseenter', () => {
-    clearToastTimers(toast);
+    clearToastTimers(toast, { keepRemoveTimer: true });
   });
   toast.addEventListener('mouseleave', () => {
     if (toast.dataset.toastHiding === 'true') {
